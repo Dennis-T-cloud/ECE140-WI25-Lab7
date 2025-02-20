@@ -38,6 +38,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/favicon.ico")
 async def favicon():
     return FileResponse("static/favicon.ico")
+
 @app.get("/", response_class=HTMLResponse)
 async def get():
    with open("index.html") as html:
@@ -47,11 +48,24 @@ async def get():
 async def websocket_endpoint(websocket: WebSocket):
     # accept the websocket connection
 
+
     # in a loop, get the new stock prices using get_new_stock_prices()
     # send the new stock prices to the client
     # sleep for 1 second
     # repeat
-    return
+
+    await websocket.accept()
+    
+    try:
+        while True:
+            data = get_new_stock_prices()
+            await websocket.send_json(data)
+            await asyncio.sleep(1)
+
+    except Exception as e:
+        print("WebSocket connection closed with exception:", e)
+    finally:
+        await websocket.close()
 
 if __name__ == "__main__":
     import uvicorn
